@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+#include <iostream>
+
 class Beverage
 {
 private:
@@ -11,7 +13,7 @@ private:
 public:
     Beverage(): description("Unknown beverage") {}
     Beverage(const char* description_): description(description_) { }
-    std::string getDescription() const { return description; }
+    virtual std::string getDescription() const { return description; }
     virtual double cost() const = 0;
     virtual ~Beverage() { }
 };
@@ -49,7 +51,7 @@ class Mocha : public CondimentDecorator
 private:
     std::shared_ptr<Beverage> beverage;
 public:
-    Mocha(Beverage* beverage_): beverage{beverage_} { }
+    Mocha(const std::shared_ptr<Beverage>& beverage_): beverage{beverage_} { }
     std::string getDescription() const override { return beverage->getDescription() + ", Mocha"; }
     double cost() const override { return 0.20 + beverage->cost(); }
 };
@@ -59,7 +61,7 @@ class Soy : public CondimentDecorator
 private:
     std::shared_ptr<Beverage> beverage;
 public:
-    Soy(Beverage* beverage_): beverage{beverage_} { }
+    Soy(const std::shared_ptr<Beverage>& beverage_): beverage{beverage_} { }
     std::string getDescription() const override { return beverage->getDescription() + ", Soy"; }
     double cost() const override { return 0.15 + beverage->cost(); }
 };
@@ -69,7 +71,7 @@ class Whip : public CondimentDecorator
 private:
     std::shared_ptr<Beverage> beverage;
 public:
-    Whip(Beverage* beverage_): beverage{beverage_} { }
+    Whip(const std::shared_ptr<Beverage>& beverage_): beverage{beverage_} { }
     std::string getDescription() const override { return beverage->getDescription() + ", Whip"; }
     double cost() const override { return 0.10 + beverage->cost(); }
 };
