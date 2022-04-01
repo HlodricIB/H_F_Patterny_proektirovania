@@ -11,61 +11,55 @@ std::shared_ptr<Pizza> PizzaStore::orderPizza(std::string type)
     return pizza;
 }
 
-class NYPizzaStore : public PizzaStore
+std::shared_ptr<Pizza> NYPizzaStore::createPizza(std::string item)
 {
-    std::shared_ptr<Pizza> createPizza(std::string item)
+    if (item == "cheese")
     {
-        if (item == "cheese")
+        return std::make_shared<NYStyleCheesePizza>();
+    } else {
+        if (item == "veggie")
         {
-            return std::make_shared<NYStyleCheesePizza>();
+            return std::shared_ptr<NYStyleVeggiePizza>();
         } else {
-            if (item == "veggie")
+            if (item == "clam")
             {
-                return std::shared_ptr<NYStyleVeggiePizza>();
+                return std::shared_ptr<NYStyleClamPizza>();
             } else {
-                if (item == "clam")
+                if (item == "pepperoni")
                 {
-                    return std::shared_ptr<NYStyleClamPizza>();
+                    return std::shared_ptr<NYStylePepperoniPizza>();
                 } else {
-                    if (item == "pepperoni")
-                    {
-                        return std::shared_ptr<NYStylePepperoniPizza>();
-                    } else {
-                        return nullptr;
-                    }
+                    return nullptr;
                 }
             }
         }
     }
-};
+}
 
-class ChicagoPizzaStore : PizzaStore
+std::shared_ptr<Pizza> ChicagoPizzaStore::createPizza(std::string item)
 {
-    std::shared_ptr<Pizza> createPizza(std::string item)
+    if (item == "cheese")
     {
-        if (item == "cheese")
+        return std::make_shared<ChicagoStyleCheesePizza>();
+    } else {
+        if (item == "veggie")
         {
-            return std::make_shared<ChicagoStyleCheesePizza>();
+            return std::shared_ptr<ChicagoStyleVeggiePizza>();
         } else {
-            if (item == "veggie")
+            if (item == "clam")
             {
-                return std::shared_ptr<ChicagoStyleVeggiePizza>();
+                return std::shared_ptr<ChicagoStyleClamPizza>();
             } else {
-                if (item == "clam")
+                if (item == "pepperoni")
                 {
-                    return std::shared_ptr<ChicagoStyleClamPizza>();
+                    return std::shared_ptr<ChicagoStylePepperoniPizza>();
                 } else {
-                    if (item == "pepperoni")
-                    {
-                        return std::shared_ptr<ChicagoStylePepperoniPizza>();
-                    } else {
-                        return nullptr;
-                    }
+                    return nullptr;
                 }
             }
         }
     }
-};
+}
 
 void Pizza::prepare() const
 {
@@ -73,9 +67,9 @@ void Pizza::prepare() const
     std::cout << "\nTossing dough (" + dough + ")...";
     std::cout << "\nAdding sauce (" + sauce + ")...";
     std::cout << "\nAdding toppings:";
-    for (auto& i : toppings)
+    for (const auto& i : toppings)
     {
-        std::cout << " " << i;
+        std::cout << "\n \t" << i;
     }
     std::cout << std::endl;
 }
