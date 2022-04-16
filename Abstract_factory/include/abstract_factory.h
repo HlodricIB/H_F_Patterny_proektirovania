@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <string>
 #include <initializer_list>
 
 class Ingredients
@@ -53,57 +54,75 @@ public:
     std::string description() const override { return std::string("reggiano cheese"); }
 };
 
-class Veggies : public Ingredients
+class VeggieIngredients
 {
-private:
-    size_t list_of_veggies;
-    std::unique_ptr<std::unique_ptr<Veggies>[]> veggies;
 public:
-    enum { garlic, onion, mushroom, red_pepper, black_olives, spinach, eggplant };
-    Veggies() = default;
-    Veggies(std::initializer_list<int> il);
-    virtual ~Veggies();
-    std::string description() const override;
+    enum ingredients { garlic, onion, mushroom, red_pepper, black_olives, spinach, eggplant };
+    VeggieIngredients() = default;
+    virtual ~VeggieIngredients() { };
+    virtual std::string description() const = 0;
 };
 
-class Garlic : public Veggies
+using veggie_ingredient = VeggieIngredients::ingredients;
+
+class Garlic : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("garlic"); }
 };
 
-class Onion : public Veggies
+class Onion : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("onion"); }
 };
 
-class Mushroom : public Veggies
+class Mushroom : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("mushrooms"); }
 };
 
-class RedPepper : public Veggies
+class RedPepper : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("red pepper"); }
 };
 
-class BlackOlives : public Veggies
+class BlackOlives : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("black olives"); }
 };
 
-class Spinach : public Veggies
+class Spinach : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("spinach"); }
 };
 
-class Eggplant : public Veggies
+class Eggplant : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("eggplant"); }
 };
 
-class Unknown : public Veggies
+class Unknown : public VeggieIngredients
 {
+public:
     std::string description() const override { return std::string("some unknown ingredients"); }
+};
+
+class Veggies : public Ingredients
+{
+private:
+    size_t list_of_veggies{0};
+    std::unique_ptr<std::unique_ptr<VeggieIngredients>[]> veggies{0};
+    std::string description() const override;
+public:    
+    Veggies() = default;
+    explicit Veggies(std::initializer_list<veggie_ingredient> il);
+    virtual ~Veggies() { };
 };
 
 class SlicedPepperoni : public Ingredients
@@ -126,50 +145,65 @@ public:
 
 class PizzaIngredientFactory
 {
-private:
+public:
+    PizzaIngredientFactory() = default;
+    virtual ~PizzaIngredientFactory() { }
     virtual std::unique_ptr<Ingredients> createDough() = 0;
     virtual std::unique_ptr<Ingredients> createSauce() = 0;
     virtual std::unique_ptr<Ingredients> createCheese() = 0;
     virtual std::unique_ptr<Ingredients> createVeggies() = 0;
     virtual std::unique_ptr<Ingredients> createPepperoni() = 0;
     virtual std::unique_ptr<Ingredients> createClams() = 0;
-public:
-    PizzaIngredientFactory() = default;
-    virtual ~PizzaIngredientFactory() { }
 };
 
-class NYPizzaIngredientFactory : PizzaIngredientFactory
+class NYPizzaIngredientFactory : public PizzaIngredientFactory
 {
+public:
     std::unique_ptr<Ingredients> createDough() { return std::make_unique<ThinCrustDough>(); }
     std::unique_ptr<Ingredients> createSauce() { return std::make_unique<MarinaraSauce>(); }
     std::unique_ptr<Ingredients> createCheese() { return std::make_unique<ReggianoCheese>(); }
     std::unique_ptr<Ingredients> createVeggies()
     {
-        return std::make_unique<Veggies>(Veggies::garlic, Veggies::onion, Veggies::mushroom, Veggies::red_pepper);
+        return std::make_unique<Veggies>(std::initializer_list<veggie_ingredient>{veggie_ingredient::garlic, veggie_ingredient::onion, veggie_ingredient::mushroom, veggie_ingredient::red_pepper});
     }
     std::unique_ptr<Ingredients> createPepperoni() { return std::make_unique<SlicedPepperoni>(); }
     std::unique_ptr<Ingredients> createClams() { return std::make_unique<FreshClams>(); }
 };
 
+class ChicagoPizzaIngredientFactory : public PizzaIngredientFactory
+{
+public:
+    std::unique_ptr<Ingredients> createDough() { return std::make_unique<ThickCrustDough>(); }
+    std::unique_ptr<Ingredients> createSauce() { return std::make_unique<PlumTomatoSauce>(); }
+    std::unique_ptr<Ingredients> createCheese() { return std::make_unique<MozzarellaCheese>(); }
+    std::unique_ptr<Ingredients> createVeggies()
+    {
+        return std::make_unique<Veggies>(std::initializer_list<veggie_ingredient>{veggie_ingredient::black_olives, veggie_ingredient::spinach, veggie_ingredient::eggplant});
+    }
+    std::unique_ptr<Ingredients> createPepperoni() { return std::make_unique<SlicedPepperoni>(); }
+    std::unique_ptr<Ingredients> createClams() { return std::make_unique<FrozenClams>(); }
+};
+
 class Pizza
 {
+    friend class PizzaStore;
 private:
-    std::string name;
-    std::unique_ptr<Ingredients> dough;
-    std::unique_ptr<Ingredients> sauce;
-    std::unique_ptr<Ingredients> veggies;
-     std::unique_ptr<Ingredients> cheese;
-    std::unique_ptr<Ingredients> pepperoni;
-    std::unique_ptr<Ingredients> clam;
-    virtual void prepare() const = 0;
+    virtual void prepare()= 0;
     virtual void bake() const { std::cout << "Bake for 25 minutes at 350\n"; }
     virtual void cut() const { std::cout << "Cutting the pizza into diagonal slices\n"; }
     virtual void box() const { std::cout << "Place pizza into original PizzaStore box" << std::endl; }
-    void setName(std::string name_) { name = name_; }
-
+protected:
+    std::string name;
+    std::unique_ptr<Ingredients> dough;
+    std::unique_ptr<Ingredients> sauce;
+    std::unique_ptr<Ingredients> cheese;
+    std::unique_ptr<Ingredients> veggies;
+    std::unique_ptr<Ingredients> pepperoni;
+    std::unique_ptr<Ingredients> clam;
 public:
-    Pizza() { }
+    Pizza() = default;
     virtual ~Pizza() { }
+    void setName(std::string name_) { name = name_; }
     std::string getName() const { return name; }
     std::string toString() const;
 };
@@ -177,10 +211,59 @@ public:
 class CheesePizza : public Pizza
 {
 private:
-    std::shared_ptr<PizzaIngredientFactory> ingredientFactory;
+    std::unique_ptr<PizzaIngredientFactory> ingredientFactory;
 public:
-    CheesePizza(const std::shared_ptr<PizzaIngredientFactory> ingredientFactory_): Pizza(), ingredientFactory(ingredientFactory_) { }
-    void prepare() const override;
+    CheesePizza(std::unique_ptr<PizzaIngredientFactory> ingredientFactory_): Pizza(), ingredientFactory(std::move(ingredientFactory_)) { }
+    void prepare() override;
+};
+
+class VeggiePizza : public Pizza
+{
+private:
+    std::unique_ptr<PizzaIngredientFactory> ingredientFactory;
+public:
+    VeggiePizza(std::unique_ptr<PizzaIngredientFactory> ingredientFactory_): Pizza(), ingredientFactory(std::move(ingredientFactory_)) { }
+    void prepare() override;
+};
+
+class ClamPizza : public Pizza
+{
+private:
+    std::unique_ptr<PizzaIngredientFactory> ingredientFactory;
+public:
+    ClamPizza(std::unique_ptr<PizzaIngredientFactory> ingredientFactory_): Pizza(), ingredientFactory(std::move(ingredientFactory_)) { }
+    void prepare() override;
+};
+
+class PepperoniPizza : public Pizza
+{
+private:
+    std::unique_ptr<PizzaIngredientFactory> ingredientFactory;
+public:
+    PepperoniPizza(std::unique_ptr<PizzaIngredientFactory> ingredientFactory_): Pizza(), ingredientFactory(std::move(ingredientFactory_)) { }
+    void prepare() override;
+};
+
+class PizzaStore
+{
+private:
+    virtual std::unique_ptr<Pizza> createPizza(std::string) = 0;
+public:
+    PizzaStore() = default;
+    std::unique_ptr<Pizza> orderPizza(std::string);
+    virtual ~PizzaStore() { };
+};
+
+class NYPizzaStore : public PizzaStore
+{
+public:
+    std::unique_ptr<Pizza> createPizza(std::string) override;
+};
+
+class ChicagoPizzaStore : public PizzaStore
+{
+public:
+    std::unique_ptr<Pizza> createPizza(std::string) override;
 };
 
 #endif // ABSTRACT_FACTORY_H

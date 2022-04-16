@@ -1,36 +1,36 @@
 #include <cstring>
 #include "abstract_factory.h"
 
-Veggies::Veggies(std::initializer_list<int> il): list_of_veggies(il.size()), veggies(new std::unique_ptr<Veggies>[list_of_veggies])
+Veggies::Veggies(std::initializer_list<veggie_ingredient> il): list_of_veggies(il.size()), veggies(new std::unique_ptr<VeggieIngredients>[list_of_veggies])
 {
     int i = 0;
     for (auto iter = il.begin(); iter != il.end(); ++iter, ++i)
     {
         switch (*iter)
         {
-        case (garlic) :
-            veggies[i] = std::make_unique<Veggies>(new Garlic());
+        case (veggie_ingredient::garlic) :
+            veggies[i] = std::make_unique<Garlic>();
             break;
-        case (onion):
-            veggies[i] = std::make_unique<Veggies>(new Onion());
+        case (veggie_ingredient::onion):
+            veggies[i] = std::make_unique<Onion>();
             break;
-        case (mushroom):
-            veggies[i] = std::make_unique<Veggies>(new Mushroom());
+        case (veggie_ingredient::mushroom):
+            veggies[i] = std::make_unique<Mushroom>();
             break;
-        case (red_pepper):
-            veggies[i] = std::make_unique<Veggies>(new RedPepper());
+        case (veggie_ingredient::red_pepper):
+            veggies[i] = std::make_unique<RedPepper>();
             break;
-        case (black_olives):
-            veggies[i] = std::make_unique<Veggies>(new BlackOlives());
+        case (veggie_ingredient::black_olives):
+            veggies[i] = std::make_unique<BlackOlives>();
             break;
-        case (spinach):
-            veggies[i] = std::make_unique<Veggies>(new Spinach());
+        case (veggie_ingredient::spinach):
+            veggies[i] = std::make_unique<Spinach>();
             break;
-        case (eggplant):
-            veggies[i] = std::make_unique<Veggies>(new Eggplant());
+        case (veggie_ingredient::eggplant):
+            veggies[i] = std::make_unique<Eggplant>();
             break;
         default:
-            veggies[i] = std::make_unique<Veggies>(new Unknown());
+            veggies[i] = std::make_unique<Unknown>();
         }
     }
 }
@@ -60,7 +60,7 @@ std::string Pizza::toString() const
     }
     if (veggies)
     {
-        pizza_compound += "\nveggies: " + sauce->description();
+        pizza_compound += "\nveggies: " + veggies->description();
     }
     if (cheese)
     {
@@ -76,3 +76,120 @@ std::string Pizza::toString() const
     }
     return pizza_compound;
 }
+
+void CheesePizza::prepare()
+{
+    std::cout << "Preparing " << name << "\n";
+    dough = ingredientFactory->createDough();
+    sauce = ingredientFactory->createSauce();
+    cheese = ingredientFactory->createCheese();
+    veggies = ingredientFactory->createVeggies();
+    pepperoni = ingredientFactory->createPepperoni();
+    clam = ingredientFactory->createClams();
+}
+
+void ClamPizza::prepare()
+{
+    std::cout << "Preparing " << name << "\n";
+    dough = ingredientFactory->createDough();
+    sauce = ingredientFactory->createSauce();
+    cheese = ingredientFactory->createCheese();
+    veggies = ingredientFactory->createVeggies();
+    pepperoni = ingredientFactory->createPepperoni();
+    clam = ingredientFactory->createClams();
+}
+
+void VeggiePizza::prepare()
+{
+    std::cout << "Preparing " << name << "\n";
+    dough = ingredientFactory->createDough();
+    sauce = ingredientFactory->createSauce();
+    cheese = ingredientFactory->createCheese();
+    veggies = ingredientFactory->createVeggies();
+    pepperoni = ingredientFactory->createPepperoni();
+    clam = ingredientFactory->createClams();
+}
+
+void PepperoniPizza::prepare()
+{
+    std::cout << "Preparing " << name << "\n";
+    dough = ingredientFactory->createDough();
+    sauce = ingredientFactory->createSauce();
+    cheese = ingredientFactory->createCheese();
+    veggies = ingredientFactory->createVeggies();
+    pepperoni = ingredientFactory->createPepperoni();
+    clam = ingredientFactory->createClams();
+}
+
+std::unique_ptr<Pizza> PizzaStore::orderPizza(std::string name)
+{
+    std::unique_ptr<Pizza> pizza = createPizza(name);
+    pizza->prepare();
+    pizza->bake();
+    pizza->cut();
+    pizza->box();
+    return pizza;
+}
+
+std::unique_ptr<Pizza> NYPizzaStore::createPizza(std::string name)
+{
+    std::unique_ptr<Pizza> pizza;
+    if (name == "cheese")
+    {
+        pizza = std::make_unique<CheesePizza>(std::make_unique<NYPizzaIngredientFactory>());
+        pizza->setName(name);
+    } else {
+        if (name == "veggie")
+        {
+            pizza = std::make_unique<VeggiePizza>(std::make_unique<NYPizzaIngredientFactory>());
+            pizza->setName(name);
+        } else {
+            if (name == "clam")
+            {
+                pizza = std::make_unique<ClamPizza>(std::make_unique<NYPizzaIngredientFactory>());
+                pizza->setName(name);
+            } else {
+                if (name == "pepperoni")
+                {
+                    pizza = std::make_unique<PepperoniPizza>(std::make_unique<NYPizzaIngredientFactory>());
+                    pizza->setName(name);
+                } else {
+                    return nullptr;
+                }
+            }
+        }
+    }
+    return pizza;
+}
+
+std::unique_ptr<Pizza> ChicagoPizzaStore::createPizza(std::string name)
+{
+    std::unique_ptr<Pizza> pizza;
+    if (name == "cheese")
+    {
+        pizza = std::make_unique<CheesePizza>(std::make_unique<ChicagoPizzaIngredientFactory>());
+        pizza->setName(name);
+    } else {
+        if (name == "veggie")
+        {
+            pizza = std::make_unique<VeggiePizza>(std::make_unique<ChicagoPizzaIngredientFactory>());
+            pizza->setName(name);
+        } else {
+            if (name == "clam")
+            {
+                pizza = std::make_unique<ClamPizza>(std::make_unique<ChicagoPizzaIngredientFactory>());
+                pizza->setName(name);
+            } else {
+                if (name == "pepperoni")
+                {
+                    pizza = std::make_unique<PepperoniPizza>(std::make_unique<ChicagoPizzaIngredientFactory>());
+                    pizza->setName(name);
+                } else {
+                    return nullptr;
+                }
+            }
+        }
+    }
+    return pizza;
+}
+
