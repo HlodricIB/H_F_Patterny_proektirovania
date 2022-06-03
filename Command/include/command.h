@@ -3,66 +3,42 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <functional>
 
 class Command;
 
-class Light{
-public:
-    virtual ~Light() { }
-    virtual void on() = 0;
-    virtual void off() = 0;
-};
-
-class LivingRoomLight : public Light
-{
-public:
-    LivingRoomLight() { }
-    void on() override;
-    void off() override;
-};
-
-class KitchenLight : public Light
-{
-public:
-    KitchenLight() { }
-    void on() override;
-    void off() override;
-};
-
-class NoLight : public Light
+class Light
 {
 private:
-    std::string place;
+    std::string location;
 public:
-    explicit NoLight(std::string place_): place(place_) { }
-    void on() override;
-    void off() override;
+    Light(const std::string& location_): location(location_) { }
+    ~Light() { }
+    void on();
+    void off();
 };
 
 class CeilingFan
 {
-public:
-    virtual ~CeilingFan() { }
-    virtual void on() = 0;
-    virtual void off() = 0;
-};
-
-class LivingRoomCeilingFan : public CeilingFan
-{
-public:
-    LivingRoomCeilingFan() { }
-    void on() override;
-    void off() override;
-};
-
-class NoCeilingFan : public CeilingFan
-{
 private:
-    std::string place;
+    int_least8_t speed{0};
+    std::string location;
 public:
-    NoCeilingFan(std::string place_): place(place_) { }
-    void on() override;
-    void off() override;
+    enum class Speed : int_least8_t
+    {
+        HIGH = 3,
+        MEDIUM = 2,
+        LOW = 1,
+        OFF = 0
+    };
+    CeilingFan(const std::string& location_): location(location_) { }
+    ~CeilingFan() { }
+    void high();
+    void medium();
+    void low();
+    void off();
+    int_least8_t getSpeed() const;
 };
 
 class GarageDoor
@@ -77,7 +53,11 @@ public:
 
 class Stereo
 {
+private:
+    std::string location;
 public:
+    Stereo(const std::string& location_): location(location_) { }
+    ~Stereo() { }
     void on();
     void off();
     void setCd();
@@ -86,22 +66,12 @@ public:
     void setVolume(int);
 };
 
-class Command_factory
-{
-private:
-    std::shared_ptr<Light> createLight(std::string);
-    std::shared_ptr<CeilingFan> createCeilingFan(std::string);
-public:
-    Command_factory() { }
-    ~Command_factory() { }
-    std::shared_ptr<Command> createCommand(const std::string, const std::string);
-};
-
 class Command
 {
 public:
     virtual ~Command() { }
     virtual void execute() = 0;
+    virtual void undo() = 0;
 };
 
 class LightOnCommand : public Command
@@ -110,7 +80,9 @@ private:
     std::shared_ptr<Light> receiver{nullptr};
 public:
     LightOnCommand(std::shared_ptr<Light> receiver_): receiver(receiver_) { }
+    ~LightOnCommand() { }
     void execute() override;
+    void undo() override;
 };
 
 class LightOffCommand : public Command
@@ -119,7 +91,9 @@ private:
     std::shared_ptr<Light> receiver{nullptr};
 public:
     LightOffCommand(std::shared_ptr<Light> receiver_): receiver(receiver_) { }
+    ~LightOffCommand() { }
     void execute() override;
+    void undo() override;
 };
 
 class StereoOnWithCDCommand : public Command
@@ -128,7 +102,9 @@ private:
     std::shared_ptr<Stereo> receiver{nullptr};
 public:
     StereoOnWithCDCommand(std::shared_ptr<Stereo> receiver_): receiver(receiver_) { }
+    ~StereoOnWithCDCommand() { }
     void execute() override;
+    void undo() override { };
 };
 
 class StereoOnWithDVDCommand : public Command
@@ -137,7 +113,9 @@ private:
     std::shared_ptr<Stereo> receiver{nullptr};
 public:
     StereoOnWithDVDCommand(std::shared_ptr<Stereo> receiver_): receiver(receiver_) { }
+    ~StereoOnWithDVDCommand() { }
     void execute() override;
+    void undo() override { };
 };
 
 class StereoOnWithRadioCommand : public Command
@@ -146,7 +124,9 @@ private:
     std::shared_ptr<Stereo> receiver{nullptr};
 public:
     StereoOnWithRadioCommand(std::shared_ptr<Stereo> receiver_): receiver(receiver_) { }
+    ~StereoOnWithRadioCommand() { }
     void execute() override;
+    void undo() override { };
 };
 
 class StereoOffCommand : public Command
@@ -155,26 +135,48 @@ private:
     std::shared_ptr<Stereo> receiver{nullptr};
 public:
     StereoOffCommand(std::shared_ptr<Stereo> receiver_): receiver(receiver_) { }
+    ~StereoOffCommand() { }
     void execute() override;
+    void undo() override { };
 };
 
-class CeilingFanOnCommand : public Command
+class CeilingFanHighCommand : public Command
 {
 private:
     std::shared_ptr<CeilingFan> receiver{nullptr};
+    int_least8_t prevSpeed;
 public:
-    CeilingFanOnCommand(std::shared_ptr<CeilingFan> receiver_): receiver(receiver_) { }
+    CeilingFanHighCommand(std::shared_ptr<CeilingFan> receiver_): receiver(receiver_) { }
+    ~CeilingFanHighCommand() { }
     void execute() override;
+    void undo() override;
+};
+
+class CeilingFanMediumCommand : public Command
+{
+private:
+    std::shared_ptr<CeilingFan> receiver{nullptr};
+    int_least8_t prevSpeed;
+public:
+    CeilingFanMediumCommand(std::shared_ptr<CeilingFan> receiver_): receiver(receiver_) { }
+    CeilingFanMediumCommand() { }
+    void execute() override;
+    void undo() override;
 };
 
 class CeilingFanOffCommand : public Command
 {
 private:
     std::shared_ptr<CeilingFan> receiver{nullptr};
+    int_least8_t prevSpeed;
 public:
     CeilingFanOffCommand(std::shared_ptr<CeilingFan> receiver_): receiver(receiver_) { }
+    CeilingFanOffCommand() { }
     void execute() override;
+    void undo() override;
 };
+
+void CeilingFanUndo(const std::shared_ptr<CeilingFan>, int_least8_t);
 
 class GarageDoorUpCommand : public Command
 {
@@ -182,7 +184,9 @@ private:
     std::shared_ptr<GarageDoor> receiver{nullptr};
 public:
     GarageDoorUpCommand(std::shared_ptr<GarageDoor> receiver_): receiver(receiver_) { }
+    ~GarageDoorUpCommand() { }
     void execute() override;
+    void undo() override { };
 };
 
 class GarageDoorDownCommand : public Command
@@ -191,28 +195,56 @@ private:
     std::shared_ptr<GarageDoor> receiver{nullptr};
 public:
     GarageDoorDownCommand(std::shared_ptr<GarageDoor> receiver_): receiver(receiver_) { }
+    ~GarageDoorDownCommand() { }
     void execute() override;
+    void undo() override { };
 };
 
 class noCommand : public Command
 {
 public:
     void execute() override;
+    void undo() override { execute(); };
+};
+
+class MacroCommand : public Command
+{
+private:
+    std::vector<std::shared_ptr<Command>> commands;
+public:
+    MacroCommand(std::vector<std::shared_ptr<Command>> commands_): commands(commands_) { }
+    void execute() override;
+    void undo() override;
 };
 
 class RemoteControl
 {
 private:
     static const size_t slots{12};
+    std::shared_ptr<Command> undoCommand;
     std::shared_ptr<Command> onCommands[slots];
     std::shared_ptr<Command> offCommands[slots];
 public:
     RemoteControl();
     void setCommand(size_t, std::shared_ptr<Command>, std::shared_ptr<Command>);
-    void onButtonWasPushed(size_t) const;
-    void offButtonWasPushed(size_t) const;
+    void onButtonWasPushed(size_t);
+    void offButtonWasPushed(size_t);
+    void undoButtonWasPushed() const;
     std::string toString() const;
 };
 
+class RemoteControlWithLambda
+{
+private:
+    static const size_t slots{12};
+    std::function<void()> onCommands[slots];
+    std::function<void()> offCommands[slots];
+public:
+    RemoteControlWithLambda();
+    void setCommand(size_t, std::function<void()>, std::function<void()>);
+    void onButtonWasPushed(size_t);
+    void offButtonWasPushed(size_t);
+    std::string toString() const;
+};
 
 #endif // COMMAND_H

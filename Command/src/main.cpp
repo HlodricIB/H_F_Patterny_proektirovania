@@ -3,57 +3,157 @@
 
 int main()
 {
-    auto remoteControl = std::make_unique<RemoteControl>();
+    {
+        //First version, without undo()
+        std::cout << "First version, without undo():\n" << std::flush;
+        auto remoteControl = std::make_unique<RemoteControl>();
 
-    auto command_Factory = std::make_unique<Command_factory>();
+        auto livingRoomLight = std::make_shared<Light>("Living room");
+        auto kitchenLight = std::make_shared<Light>("Kitchen");
+        auto ceilingFan = std::make_shared<CeilingFan>("Living room");
+        auto garageDoor = std::make_shared<GarageDoor>();
+        auto stereo = std::make_shared<Stereo>("Living room");
 
-    auto livingRoomLightOn = command_Factory->createCommand(std::string("LightOnCommand"), std::string("Living Room"));
-    auto livingRoomLightOff = command_Factory->createCommand(std::string("LightOffCommand"), std::string("Living Room"));
-    auto kitchenLightOn = command_Factory->createCommand(std::string("LightOnCommand"), std::string("Kitchen"));
-    auto kitchenLightOff = command_Factory->createCommand(std::string("LightOffCommand"), std::string("Kitchen"));
-    auto gardenLightOn = command_Factory->createCommand(std::string("LightOnCommand"), std::string("Garden"));
-    auto gardenLightOff = command_Factory->createCommand(std::string("LightOffCommand"), std::string("Garden"));
+        auto livingRoomLightOn = std::make_shared<LightOnCommand>(livingRoomLight);
+        auto livingRoomLightOff = std::make_shared<LightOffCommand>(livingRoomLight);
+        auto kitchenLightOn = std::make_shared<LightOnCommand>(kitchenLight);
+        auto kitchenLightOff = std::make_shared<LightOffCommand>(kitchenLight);
+        auto ceilingFanHigh = std::make_shared<CeilingFanHighCommand>(ceilingFan);
+        auto ceilingFanOff = std::make_shared<CeilingFanOffCommand>(ceilingFan);
+        auto garageDoorUp = std::make_shared<GarageDoorUpCommand>(garageDoor);
+        auto garageDoorDown = std::make_shared<GarageDoorDownCommand>(garageDoor);
+        auto stereoOnWithCD = std::make_shared<StereoOnWithCDCommand>(stereo);
+        auto stereoOnWithDVD = std::make_shared<StereoOnWithDVDCommand>(stereo);
+        auto stereoOnWithRadio = std::make_shared<StereoOnWithRadioCommand>(stereo);
+        auto stereoOff = std::make_shared<StereoOffCommand>(stereo);
 
-    auto ceilingFanOn = command_Factory->createCommand(std::string("CeilingFanOnCommand"), std::string("Living Room"));
-    auto ceilingFanOff = command_Factory->createCommand(std::string("CeilingFanOffCommand"), std::string("Living Room"));
-    auto garageCeilingFanOn = command_Factory->createCommand(std::string("CeilingFanOnCommand"), std::string("Garage"));
-    auto garageCeilingFanOff = command_Factory->createCommand(std::string("CeilingFanOffCommand"), std::string("Garage"));
+        remoteControl->setCommand(0, livingRoomLightOn, livingRoomLightOff);
+        remoteControl->setCommand(1, kitchenLightOn, kitchenLightOff);
+        remoteControl->setCommand(2, ceilingFanHigh, ceilingFanOff);
+        remoteControl->setCommand(3, garageDoorUp, garageDoorDown);
+        remoteControl->setCommand(4, stereoOnWithCD, stereoOff);
+        remoteControl->setCommand(5, stereoOnWithDVD, stereoOff);
+        remoteControl->setCommand(6, stereoOnWithRadio, stereoOff);
+        std::cout << remoteControl->toString() << std::endl;
+        remoteControl->onButtonWasPushed(0);
+        remoteControl->offButtonWasPushed(0);
+        remoteControl->onButtonWasPushed(1);
+        remoteControl->offButtonWasPushed(1);
+        remoteControl->onButtonWasPushed(2);
+        remoteControl->offButtonWasPushed(2);
+        remoteControl->onButtonWasPushed(3);
+        remoteControl->offButtonWasPushed(3);
+        remoteControl->onButtonWasPushed(4);
+        remoteControl->offButtonWasPushed(4);
+        remoteControl->onButtonWasPushed(5);
+        remoteControl->offButtonWasPushed(5);
+        remoteControl->onButtonWasPushed(6);
+        remoteControl->offButtonWasPushed(6);
+        remoteControl->onButtonWasPushed(7);
+        remoteControl->offButtonWasPushed(7);
+    }
 
-    auto garageDoorUp = command_Factory->createCommand(std::string("GarageDoorUpCommand"), std::string());
-    auto garageDoorDown = command_Factory->createCommand(std::string("GarageDoorDownCommand"), std::string());
+    {
+        //Second version, undo() added
+        std::cout << "\nSecond version, undo() added:\n" << std::flush;
+        auto remoteControl = std::make_unique<RemoteControl>();
 
-    auto stereoOnWithCD = command_Factory->createCommand(std::string("StereoOnWithCDCommand"), std::string());
-    auto stereoOnWithDVD= command_Factory->createCommand(std::string("StereoOnWithDVDCommand"), std::string());
-    auto stereoOnWithRadio= command_Factory->createCommand(std::string("StereoOnWithRadioCommand"), std::string());
-    auto stereoOff = command_Factory->createCommand(std::string("StereoOffCommand"), std::string());
+        auto livingRoomLight = std::make_shared<Light>("Living room");
+        auto ceilingFan = std::make_shared<CeilingFan>("Living room");
 
-    remoteControl->setCommand(0, livingRoomLightOn, livingRoomLightOff);
-    remoteControl->setCommand(1, kitchenLightOn, kitchenLightOff);
-    remoteControl->setCommand(2, gardenLightOn, gardenLightOff);
-    remoteControl->setCommand(3, ceilingFanOn, ceilingFanOff);
-    remoteControl->setCommand(4, garageCeilingFanOn, garageCeilingFanOff);
-    remoteControl->setCommand(5, garageDoorUp, garageDoorDown);
-    remoteControl->setCommand(6, stereoOnWithCD, stereoOff);
-    remoteControl->setCommand(7, stereoOnWithDVD, stereoOff);
-    remoteControl->setCommand(8, stereoOnWithRadio, stereoOff);
-    std::cout << remoteControl->toString() << std::endl;
-    remoteControl->onButtonWasPushed(0);
-    remoteControl->offButtonWasPushed(0);
-    remoteControl->onButtonWasPushed(1);
-    remoteControl->offButtonWasPushed(1);
-    remoteControl->onButtonWasPushed(2);
-    remoteControl->offButtonWasPushed(2);
-    remoteControl->onButtonWasPushed(3);
-    remoteControl->offButtonWasPushed(3);
-    remoteControl->onButtonWasPushed(4);
-    remoteControl->offButtonWasPushed(4);
-    remoteControl->onButtonWasPushed(5);
-    remoteControl->offButtonWasPushed(5);
-    remoteControl->onButtonWasPushed(6);
-    remoteControl->offButtonWasPushed(6);
-    remoteControl->onButtonWasPushed(7);
-    remoteControl->offButtonWasPushed(7);
-    remoteControl->onButtonWasPushed(8);
-    remoteControl->offButtonWasPushed(8);
+        auto livingRoomLightOn = std::make_shared<LightOnCommand>(livingRoomLight);
+        auto livingRoomLightOff = std::make_shared<LightOffCommand>(livingRoomLight);
+
+        auto ceilingFanHigh = std::make_shared<CeilingFanHighCommand>(ceilingFan);
+        auto ceilingFanMedium = std::make_shared<CeilingFanMediumCommand>(ceilingFan);
+        auto ceilingFanOff = std::make_shared<CeilingFanOffCommand>(ceilingFan);
+
+        remoteControl->setCommand(0, livingRoomLightOn, livingRoomLightOff);
+        remoteControl->setCommand(1, ceilingFanMedium, ceilingFanOff);
+        remoteControl->setCommand(2, ceilingFanHigh, ceilingFanOff);
+
+        remoteControl->onButtonWasPushed(0);
+        remoteControl->offButtonWasPushed(0);
+        std::cout << remoteControl->toString() << std::endl;
+        remoteControl->undoButtonWasPushed();
+        remoteControl->offButtonWasPushed(0);
+        remoteControl->onButtonWasPushed(0);
+        std::cout << remoteControl->toString() << std::endl;
+        remoteControl->undoButtonWasPushed();
+
+        std::cout << std::endl;
+
+        remoteControl->onButtonWasPushed(1);
+        remoteControl->offButtonWasPushed(1);
+        std::cout << remoteControl->toString() << std::endl;
+        remoteControl->undoButtonWasPushed();
+        remoteControl->onButtonWasPushed(2);
+        std::cout << remoteControl->toString() << std::endl;
+        remoteControl->undoButtonWasPushed();
+    }
+
+    {
+        //Third version, Macrocommand added
+        std::cout << "\nThird version, Macrocommand added:\n" << std::flush;
+        auto remoteControl = std::make_unique<RemoteControl>();
+
+        auto livingRoomLight = std::make_shared<Light>("Living room");
+        auto ceilingFan = std::make_shared<CeilingFan>("Living room");
+        auto stereo = std::make_shared<Stereo>("Living room");
+
+        auto livingRoomLightOn = std::make_shared<LightOnCommand>(livingRoomLight);
+        auto livingRoomLightOff = std::make_shared<LightOffCommand>(livingRoomLight);
+        auto ceilingFanHigh = std::make_shared<CeilingFanHighCommand>(ceilingFan);
+        auto ceilingFanOff = std::make_shared<CeilingFanOffCommand>(ceilingFan);
+
+        std::vector<std::shared_ptr<Command>> partyOn = {livingRoomLightOn, ceilingFanHigh};
+        std::vector<std::shared_ptr<Command>> partyOff = {livingRoomLightOff, ceilingFanOff};
+        auto partyOnMacro = std::make_shared<MacroCommand>(partyOn);
+        auto partyOffMacro = std::make_shared<MacroCommand>(partyOff);
+
+        remoteControl->setCommand(0, partyOnMacro, partyOffMacro);
+        std::cout << remoteControl->toString() << std::endl;
+        std::cout << "---Pushing Macro On---\n" << std::flush;
+        remoteControl->onButtonWasPushed(0);
+        std::cout << "---Pushing Macro Off---\n" << std::flush;
+        remoteControl->offButtonWasPushed(0);
+        std::cout << "---Pushing undo---\n" << std::flush;
+        remoteControl->undoButtonWasPushed();
+    }
+
+    {
+        //Fourth version, lambdas added
+        std::cout << "\nFourth version, lambdas added:\n" << std::flush;
+        auto remoteControlWithLambda = std::make_unique<RemoteControlWithLambda>();
+
+        auto livingRoomLight = std::make_shared<Light>("Living room");
+        auto kitchenLight = std::make_shared<Light>("Kitchen");
+        auto ceilingFan = std::make_shared<CeilingFan>("Living room");
+        auto garageDoor = std::make_shared<GarageDoor>();
+        auto stereo = std::make_shared<Stereo>("Living room");
+
+        auto stereoOnWithCD = [stereo] ( ) {
+            stereo->on();
+            stereo->setCd();
+            stereo->setVolume(11);
+        };
+
+        remoteControlWithLambda->setCommand(0, std::bind(&Light::on, livingRoomLight), std::bind(&Light::off, livingRoomLight));
+        remoteControlWithLambda->setCommand(1, std::bind(&Light::on, kitchenLight), std::bind(&Light::off, kitchenLight));
+        remoteControlWithLambda->setCommand(2, std::bind(&CeilingFan::high, ceilingFan), std::bind(&CeilingFan::off, ceilingFan));
+        remoteControlWithLambda->setCommand(3, std::bind(&GarageDoor::on, garageDoor), std::bind(&GarageDoor::off, garageDoor));
+        remoteControlWithLambda->setCommand(4, stereoOnWithCD, std::bind(&Stereo::off, stereo));
+        std::cout << remoteControlWithLambda->toString() << std::endl;
+        remoteControlWithLambda->onButtonWasPushed(0);
+        remoteControlWithLambda->offButtonWasPushed(0);
+        remoteControlWithLambda->onButtonWasPushed(1);
+        remoteControlWithLambda->offButtonWasPushed(1);
+        remoteControlWithLambda->onButtonWasPushed(2);
+        remoteControlWithLambda->offButtonWasPushed(2);
+        remoteControlWithLambda->onButtonWasPushed(3);
+        remoteControlWithLambda->offButtonWasPushed(3);
+        remoteControlWithLambda->onButtonWasPushed(4);
+        remoteControlWithLambda->offButtonWasPushed(4);
+    }
     return 0;
 }
