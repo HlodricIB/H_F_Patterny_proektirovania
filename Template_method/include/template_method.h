@@ -7,6 +7,7 @@
 class CaffeineBeverageWithHook
 {
 public:
+    virtual ~CaffeineBeverageWithHook() { }
     virtual void prepareRecipe() final;
     virtual void brew() = 0;
     virtual void addCondiments() = 0;

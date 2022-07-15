@@ -8,7 +8,40 @@
 #include <map>
 #include <vector>
 
-class MenuItem
+class MenuComponent
+{
+public:
+    virtual ~MenuComponent() { }
+    virtual void add(std::shared_ptr<MenuComponent>) = 0;
+    virtual void remove(std::shared_ptr<MenuComponent>) = 0;
+    virtual std::optional<std::shared_ptr<MenuComponent>> getChild(int) const = 0;
+    virtual std::string getName() const = 0;
+    virtual std::string getDescription() const = 0;
+    virtual std::optional<double> getPrice() const = 0;
+    virtual std::optional<bool> isVegetarian() const = 0;
+    virtual void print() const = 0;
+};
+
+class Menu : public MenuComponent
+{
+private:
+    std::vector<std::shared_ptr<MenuComponent>> menuComponents;
+    std::string name;
+    std::string description;
+public:
+    Menu() = default;
+    Menu(std::string name_, std::string description_): name(name_), description(description_) { }
+    void add(std::shared_ptr<MenuComponent> menuComponent) override;
+    void remove(std::shared_ptr<MenuComponent> menuComponent) override;
+    std::optional<std::shared_ptr<MenuComponent>> getChild(int i) const override;
+    std::string getName() const override;
+    std::string getDescription() const override;
+    std::optional<double> getPrice() const override;
+    std::optional<bool> isVegetarian() const override;
+    void print() const override;
+};
+
+class MenuItem : public MenuComponent
 {
 private:
     std::string name;

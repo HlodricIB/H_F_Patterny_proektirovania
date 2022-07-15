@@ -7,6 +7,7 @@
 class Duck
 {
 public:
+    virtual ~Duck() { }
     virtual void quack() = 0;
     virtual void fly() = 0;
 };
@@ -28,6 +29,7 @@ public:
 class WildTurkey : public Turkey
 {
 public:
+    virtual ~WildTurkey() { }
     void gobble() override { std::cout << "Gobble gobble"; }
     void fly() override { std::cout << "I’m flying a short distance" ; }
 };

@@ -28,6 +28,7 @@ public:
 template <class Object> class Iterator
 {
 public:
+    virtual ~Iterator() { }
     virtual std::optional<std::reference_wrapper<Object>> next() const = 0;
     virtual bool hasNext() const = 0;
     virtual void remove() = 0;
@@ -72,6 +73,7 @@ public:
 class Menu
 {
 public:
+    virtual ~Menu() { }
     virtual std::shared_ptr<Iterator<MenuItem>> createIterator() = 0;
 };
 
@@ -125,9 +127,5 @@ public:
     Waitress(std::vector<std::shared_ptr<Menu>> menus_): menus(menus_){ }
     void printMenu() const;
 };
-
-
-
-
 
 #endif // ITERATOR_H
