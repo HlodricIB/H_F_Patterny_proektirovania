@@ -1,131 +1,62 @@
 #include <iostream>
+#include <algorithm>
+#include <execution>
 #include "composite.h"
 
-DinerMenu::DinerMenu()
+void Menu::remove(std::shared_ptr<MenuComponent> menuComponent)
 {
-    addItem("Vegetarian BLT", "(Fakin’) Bacon with lettuce & tomato on whole wheat", true, 2.99);
-    addItem("BLT", "Bacon with lettuce & tomato on whole wheat", false, 2.99);
-    addItem("Soup of the day", "Soup of the day, with a side of potato salad", false, 3.29);
-    addItem("Hotdog", "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05);
-    addItem("Steamed Veggies and Brown Rice", "Steamed vegetables over brown rice", true, 3.99);
-    addItem("Pasta", "Spaghetti with Marinara Sauce, and a slice of sourdough bread", false, 3.89);
-}
-
-void DinerMenu::addItem(const std::string& name, const std::string& description, bool vegetarian, double price)
-{
-    size_t max_items_real = MAX_ITEMS - 1;
-    if (numberOfItems != max_items_real)
+    auto iter = std::find(std::execution::par, menuComponents.begin(), menuComponents.end(), menuComponent);
+    if (iter != menuComponents.end())
     {
-        menuItems[numberOfItems++] = {name, description, vegetarian, price};
-    } else {
-        std::cout << "Sorry, menu is full! Can’t add item to menu" << std::endl;
-    }
-    menuItems[numberOfItems] = { };
-}
-
-std::optional<std::reference_wrapper<MenuItem>> DinerMenuIterator::next() const
-{
-    if (hasNext())
-    {
-        return items[position++];
-    }
-    return std::nullopt;
-}
-
-void DinerMenuIterator::remove()
-{
-    if (position <= 0)
-    {
-        std::cout << "You can’t remove an item until you’ve done at least one next()" << std::endl;
-        return;
-    }
-    size_t pos_to_remove = position - 1;
-    if (items[pos_to_remove].getPrice() > 0)
-    {
-        while (items[position].getPrice() > 0)
-        {
-            items[pos_to_remove++] = items[position++];
-        }
-        items[pos_to_remove] = {};
+        menuComponents.erase(iter);
     }
 }
 
-PancakeHouseMenu::PancakeHouseMenu()
+std::optional<std::shared_ptr<MenuComponent>> Menu::getChild(int i) const
 {
-    addItem("K&B’s Pancake Breakfast", "Pancakes with scrambled eggs, and toast", true, 2.99);
-    addItem("Regular Pancake Breakfast", "Pancakes with fried eggs, sausage", false, 2.99);
-    addItem("Blueberry Pancakes", "Pancakes made with fresh blueberries", true, 3.49);
-    addItem("Waffles", "Waffles, with your choice of blueberries or strawberries", true, 3.59);
+    if (static_cast<std::vector<std::shared_ptr<MenuComponent>>::size_type>(i) > (menuComponents.size() - 1))
+    {
+        return std::nullopt;
+    }
+    return menuComponents[i];
 }
 
-void Waitress::printMenu() const
+void Menu::print() const
 {
-    for (auto& menu : menus)
+    std::cout << "\n\n" << getName() << ", " << getDescription() << '\n' << "----------------------------------------";
+    for (auto& menu_component : menuComponents)
     {
-        printMenu(menu->createIterator());
+        menu_component -> print();
     }
 }
 
-void Waitress::printMenu(std::shared_ptr<Iterator<MenuItem>> iterator) const
+std::shared_ptr<Iterator<MenuComponent>> Menu::createIterator()
 {
-    while (auto menuItem = iterator->next())
+    if (!iterator)
     {
-        std::cout << menuItem->get().getName() << ", " << menuItem->get().getPrice() << " == "
-                    << menuItem->get().getDescription() << std::endl;
+        iterator = std::make_shared<CompositeIterator>(menuComponents.begin());
     }
-    std::cout << std::endl;
+    return iterator;
 }
 
-std::optional<std::reference_wrapper<MenuItem>> PancakeHouseIterator::next() const
+void MenuItem::print() const
 {
-    if (position != items->end())
+    std::cout << "\n    " << getName();
+    if (isVegetarian().has_value() && isVegetarian())
     {
-        return *(position++);
+        std::cout << "(v), ";
     }
-    return std::nullopt;
+    std::cout << getPrice().value() << "  --  " << getDescription();
+
 }
 
-void PancakeHouseIterator::remove()
+void Waitress::printVegetarianMenu() const
 {
-    if (position == items->begin())
+    std::cout << "\n\nVEGETARIAN MENU\n----------------------------------------";
+    auto iterator = allMenus->createIterator();
+    while (iterator->hasNext())
     {
-        std::cout << "You can’t remove an item until you’ve done at least one next()" << std::endl;
-        return;
-    }
-    auto pos_to_remove = position;
-    if ((--pos_to_remove)->getPrice() > 0)
-    {
-       items->erase(pos_to_remove);
-    }
-}
-
-CafeMenu::CafeMenu()
-{
-    addItem("Veggie Burger and Air Fries", "Veggie burger on a whole wheat bun, lettuce, tomato, and fries", true, 3.99);
-    addItem("Soup of the day", "A cup of the soup of the day, with a side salad", false, 3.69);
-    addItem("Burrito", "A large burrito, with whole pinto beans, salsa, guacamole", true, 4.29);
-}
-
-std::optional<std::reference_wrapper<MenuItem>> CafeMenuIterator::next() const
-{
-    if (position != items.end())
-    {
-        return (position++)->second;
-    }
-    return std::nullopt;
-}
-
-void CafeMenuIterator::remove()
-{
-    if (position == items.begin())
-    {
-        std::cout << "You can’t remove an item until you’ve done at least one next()" << std::endl;
-        return;
-    }
-    auto pos_to_remove = position;
-    if ((--pos_to_remove)->second.getPrice() > 0)
-    {
-       items.erase(pos_to_remove);
+        if (iterator->next())
     }
 }
 
