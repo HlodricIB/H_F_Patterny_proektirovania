@@ -3,6 +3,25 @@
 #include <execution>
 #include "composite.h"
 
+std::optional<std::reference_wrapper<MenuComponent>> CompositeIterator::next()
+{
+    if (hasNext())
+    {
+
+    }
+
+}
+
+bool CompositeIterator::hasNext() const
+{
+    if (stack.empty())
+    {
+        return false;
+    }
+    auto iterator = stack.top();
+    if ((iterator + 1) != )
+}
+
 void Menu::remove(std::shared_ptr<MenuComponent> menuComponent)
 {
     auto iter = std::find(std::execution::par, menuComponents.begin(), menuComponents.end(), menuComponent);
@@ -34,7 +53,7 @@ std::shared_ptr<Iterator<MenuComponent>> Menu::createIterator()
 {
     if (!iterator)
     {
-        iterator = std::make_shared<CompositeIterator>(menuComponents.begin());
+        iterator = std::make_shared<Iterator<MenuComponent>>(menuComponents.begin());
     }
     return iterator;
 }

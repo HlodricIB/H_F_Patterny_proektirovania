@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <exception>
+#include <stack>
 
 class Menu_exception : public std::exception
 {
@@ -24,25 +25,28 @@ template <class Object> class Iterator
 {
 public:
     virtual ~Iterator() { }
-    virtual std::optional<std::reference_wrapper<Object>> next() const = 0;
+    virtual std::optional<std::reference_wrapper<Object>> next() = 0;
     virtual bool hasNext() const = 0;
     virtual void remove() = 0;
 };
 
 class CompositeIterator : public Iterator<MenuComponent>
 {
+private:
+    std::stack<std::vector<MenuComponent>::iterator> stack;
 public:
     CompositeIterator() = default;
-    std::optional<std::reference_wrapper<MenuComponent>> next() const override;
+    CompositeIterator(std::vector<MenuComponent>::iterator iterator) { stack.push(iterator); }
+    std::optional<std::reference_wrapper<MenuComponent>> next() override;
     bool hasNext() const override;
-    //void remove() override { throw Menu_exception("Remove() function not realized in this version"); };
+    void remove() override;
 };
 
 class NullIterator : public Iterator<MenuComponent>
 {
 public:
     NullIterator() = default;
-    std::optional<std::reference_wrapper<MenuComponent>> next() const override { return std::nullopt; }
+    std::optional<std::reference_wrapper<MenuComponent>> next() override { return std::nullopt; }
     bool hasNext() const override { return false;}
     void remove() override { throw Menu_exception("Remove() function not realized in this version"); }
 };
