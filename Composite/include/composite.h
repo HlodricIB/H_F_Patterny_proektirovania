@@ -26,20 +26,32 @@ template <class Object> class Iterator
 public:
     virtual ~Iterator() { }
     virtual std::optional<std::reference_wrapper<Object>> next() = 0;
-    virtual bool hasNext() const = 0;
+    virtual bool hasNext() = 0;
     virtual void remove() = 0;
 };
 
-class CompositeIterator : public Iterator<MenuComponent>
+class Iterator_adapter : public Iterator<MenuComponent>
 {
 private:
-    std::stack<std::vector<MenuComponent>::iterator> stack;
+    std::vector<std::shared_ptr<MenuComponent>>::iterator current;
+    std::vector<std::shared_ptr<MenuComponent>>::iterator end;
+public:
+    Iterator_adapter(std::vector<std::shared_ptr<MenuComponent>>::iterator current_, std::vector<std::shared_ptr<MenuComponent>>::iterator end_): current(current_), end(end_) { }
+    std::optional<std::reference_wrapper<MenuComponent>> next() override;
+    bool hasNext() override;
+    void remove() override { throw Menu_exception("Remove() function is not supported in this version"); }
+};
+
+class CompositeIterator : public Iterator<MenuComponent>, public std::enable_shared_from_this<CompositeIterator>
+{
+private:
+    std::stack<std::shared_ptr<Iterator<MenuComponent>>> stack;
 public:
     CompositeIterator() = default;
-    CompositeIterator(std::vector<MenuComponent>::iterator iterator) { stack.push(iterator); }
+    CompositeIterator(std::shared_ptr<Iterator<MenuComponent>> iterator) { stack.push(iterator); }
     std::optional<std::reference_wrapper<MenuComponent>> next() override;
-    bool hasNext() const override;
-    void remove() override;
+    bool hasNext() override;
+    void remove() override { throw Menu_exception("Remove() function is not supported in this version"); };
 };
 
 class NullIterator : public Iterator<MenuComponent>
@@ -47,8 +59,8 @@ class NullIterator : public Iterator<MenuComponent>
 public:
     NullIterator() = default;
     std::optional<std::reference_wrapper<MenuComponent>> next() override { return std::nullopt; }
-    bool hasNext() const override { return false;}
-    void remove() override { throw Menu_exception("Remove() function not realized in this version"); }
+    bool hasNext() override { return false;}
+    void remove() override { throw Menu_exception("Remove() function is not supported in this version"); }
 };
 
 class MenuComponent

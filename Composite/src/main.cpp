@@ -24,13 +24,48 @@ int main()
     dinerMenu->add(std::make_shared<MenuItem>("Soup of the day", "Soup of the day, with a side of potato salad", false, 3.29));
     dinerMenu->add(std::make_shared<MenuItem>("Hotdog", "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05));
     dinerMenu->add(std::make_shared<MenuItem>("Steamed Veggies and Brown Rice", "Steamed vegetables over brown rice", true, 3.99));
-    dinerMenu->add(std::make_shared<MenuItem>("Pasta", "Spaghetti with Marinara Sauce, and a slice of sourdough bread", false, 3.89));
+    dinerMenu->add(std::make_shared<MenuItem>("Pasta", "Spaghetti with Marinara Sauce, and a slice of sourdough bread", true, 3.89));
     dinerMenu->add(dessertMenu);
     dessertMenu->add(std::make_shared<MenuItem>("Apple Pie", "Apple pie with a flakey crust, topped with vanilla icecream", true, 1.59));
     dessertMenu->add(std::make_shared<MenuItem>("Cheesecake", "Creamy New York cheesecake, with a chocolate graham crust", true, 1.99));
     dessertMenu->add(std::make_shared<MenuItem>("Sorbet", "A scoop of raspberry and a scoop of lime", true, 1.89));
     Waitress waitress(allMenu);
     waitress.printMenu();
+    waitress.printVegetarianMenu();
+    std::cout << std::endl;
+    std::shared_ptr<MenuComponent> myAllMenu = std::make_shared<Menu>("MY ALL MENU", "How works different functions");
+    std::shared_ptr<MenuComponent> myMenu1 = std::make_shared<Menu>("MENU 1", "1");
+    std::shared_ptr<MenuComponent> myMenu2 = std::make_shared<Menu>("MENU 2", "2");
+    myAllMenu->add(myMenu1);
+    myAllMenu->add(myMenu2);
+    std::shared_ptr<MenuComponent> myMenuItem1_1 = std::make_shared<MenuItem>("Menu Item 1_1", "1_1", true, 1);
+    std::shared_ptr<MenuComponent> myMenuItem1_2 = std::make_shared<MenuItem>("Menu Item 1_2", "1_2", false, 1);
+    std::shared_ptr<MenuComponent> myMenuItem1_3 = std::make_shared<MenuItem>("Menu Item 1_3", "1_3", true, 1);
+    std::shared_ptr<MenuComponent> myMenuItem2_1 = std::make_shared<MenuItem>("Menu Item 2_1", "2_1", true, 2);
+    std::shared_ptr<MenuComponent> myMenuItem2_2 = std::make_shared<MenuItem>("Menu Item 2_2", "2_2", false, 2);
+    myMenu1->add(myMenuItem1_1);
+    myMenu1->add(myMenuItem1_2);
+    myMenu1->add(myMenuItem1_3);
+    myMenu2->add(myMenuItem2_1);
+    myMenu2->add(myMenuItem2_2);
+    Waitress my_waitress(myAllMenu);
+    my_waitress.printMenu();
+    my_waitress.printVegetarianMenu();
+    std::cout << std::endl;
+    try {
+        auto iterator_menu = myMenu1->createIterator();
+        iterator_menu->remove();
+    }  catch (const Menu_exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+    try {
+        auto iterator_menuItem = myMenuItem1_2->createIterator();
+        iterator_menuItem->remove();
+    }  catch (const Menu_exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+    myAllMenu->remove(myMenu1);
+    my_waitress.printMenu();
     std::cout << std::endl;
     return 0;
 }

@@ -3,23 +3,45 @@
 #include <execution>
 #include "composite.h"
 
+std::optional<std::reference_wrapper<MenuComponent>> Iterator_adapter::next()
+{
+    if (hasNext())
+    {
+        return std::ref(*(*current++));
+    }
+    return std::nullopt;
+}
+
+bool Iterator_adapter::hasNext()
+{
+    return current != end ? true : false;
+}
+
 std::optional<std::reference_wrapper<MenuComponent>> CompositeIterator::next()
 {
     if (hasNext())
     {
-
+        auto iterator = stack.top();
+        auto component = iterator->next();
+        stack.push(component->get().createIterator());
+        return *component;
     }
-
+    return std::nullopt;
 }
 
-bool CompositeIterator::hasNext() const
+bool CompositeIterator::hasNext()
 {
     if (stack.empty())
     {
         return false;
     }
     auto iterator = stack.top();
-    if ((iterator + 1) != )
+    if (!iterator->hasNext())
+    {
+        stack.pop();
+        return hasNext();
+    }
+    return true;
 }
 
 void Menu::remove(std::shared_ptr<MenuComponent> menuComponent)
@@ -53,7 +75,7 @@ std::shared_ptr<Iterator<MenuComponent>> Menu::createIterator()
 {
     if (!iterator)
     {
-        iterator = std::make_shared<Iterator<MenuComponent>>(menuComponents.begin());
+        iterator = std::make_shared<CompositeIterator>(std::make_shared<Iterator_adapter>(menuComponents.begin(), menuComponents.end()));
     }
     return iterator;
 }
@@ -61,12 +83,11 @@ std::shared_ptr<Iterator<MenuComponent>> Menu::createIterator()
 void MenuItem::print() const
 {
     std::cout << "\n    " << getName();
-    if (isVegetarian().has_value() && isVegetarian())
+    if (isVegetarian().has_value() && *isVegetarian())
     {
-        std::cout << "(v), ";
+        std::cout << "(v)";
     }
-    std::cout << getPrice().value() << "  --  " << getDescription();
-
+    std::cout << ", " << getPrice().value() << "  --  " << getDescription();
 }
 
 void Waitress::printVegetarianMenu() const
@@ -75,7 +96,10 @@ void Waitress::printVegetarianMenu() const
     auto iterator = allMenus->createIterator();
     while (iterator->hasNext())
     {
-        if (iterator->next())
+        if (auto component = iterator->next(); component->get().isVegetarian().has_value() && *(component->get().isVegetarian()))
+        {
+            component->get().print();
+        }
     }
 }
 
