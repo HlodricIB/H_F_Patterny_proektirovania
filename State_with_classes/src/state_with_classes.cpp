@@ -1,3 +1,4 @@
+#include <sstream>
 #include "state_with_classes.h"
 
 GumballMachine::GumballMachine(int numberGumballs_, std::shared_ptr<State> soldOutState_, std::shared_ptr<State> noQuarterState_, std::shared_ptr<State> hasQuarterState_,
@@ -28,6 +29,18 @@ void GumballMachine::refill(int count_)
     state->refill();
 }
 
+std::string GumballMachine::toString() const
+{
+    std::ostringstream info;
+    info << "\nMighty Gumball, Inc.\nInventory: " << count << " gumballs\n" << state->toString();
+    return info.str();
+}
+
+void State::dispense()
+{
+
+}
+
 void NoQuarterState::insertQuarter()
 {
     std::cout << "You inserted a quarter" << std::endl;
@@ -43,5 +56,44 @@ void HasQuarterState::ejectQuarter()
 void HasQuarterState::turnCrank()
 {
     std::cout << "You turned..." << std::endl;
-    gumballMachine->setState(gumballMachine->getSoldOutState());
+    if (d(gen) == 1 && gumballMachine->getCount() > 1)
+    {
+        gumballMachine->setState(gumballMachine->getWinnerState());
+        return ;
+    }
+    gumballMachine->setState(gumballMachine->getSoldState());
+}
+
+void SoldState::dispense()
+{
+    gumballMachine->releaseBall();
+    if (gumballMachine->getCount() > 0)
+    {
+        gumballMachine->setState(gumballMachine->getNoQuarterState());
+    } else {
+        std::cout << "Oops, out of gumballs!" << std::endl;
+        gumballMachine->setState(gumballMachine->getSoldOutState());
+    }
+}
+
+void SoldOutState::refill()
+{
+    if (gumballMachine->getCount() > 0)
+    {
+        gumballMachine->setState(gumballMachine->getNoQuarterState());
+    }
+}
+
+void WinnerState::dispense()
+{
+    gumballMachine->releaseBall();
+    gumballMachine->releaseBall();
+    std::cout << "YOU’RE A WINNER! You got two gumballs for your quarter" << std::endl;
+    if (gumballMachine->getCount() > 0)
+    {
+        gumballMachine->setState(gumballMachine->getNoQuarterState());
+    } else {
+        std::cout << "Oops, out of gumballs!" << std::endl;
+        gumballMachine->setState(gumballMachine->getSoldOutState());
+    }
 }
