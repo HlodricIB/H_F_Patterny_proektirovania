@@ -7,17 +7,16 @@
 
 int main()
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::discrete_distribution<> d({90, 10});
-    std::map<int, int> map;
-    for(int n=0; n<10000; ++n)
-    {
-        ++map[d(gen)];
-    }
-    for(const auto& [num, count] : map)
-    {
-        std::cout << num << " generated " << std::setw(4) << count << " times\n";
-    }
+    //auto gumballMachine = std::make_shared<GumballMachine>(5);
+    auto gumballMachine = GumballMachine::get_ptr(5);
+    //gumballMachine.reset();
+    //std::cout <<gumballMachine->toString() << std::endl;
+    /*gumballMachine.insertQuarter();
+    gumballMachine.turnCrank();
+    std::cout <<gumballMachine.toString() << std::endl;
+    gumballMachine.insertQuarter();
+    gumballMachine.turnCrank();
+    gumballMachine.insertQuarter();
+    gumballMachine.turnCrank();*/
     return 0;
 }
