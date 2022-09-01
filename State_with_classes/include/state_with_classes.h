@@ -52,9 +52,9 @@ public:
 class NoQuarterState : public State
 {
 private:
-    std::shared_ptr<GumballMachine> gumballMachine{nullptr};
+    std::weak_ptr<GumballMachine> gumballMachine;
 public:
-    explicit NoQuarterState(std::shared_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
+    explicit NoQuarterState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
     void insertQuarter() override;
     void ejectQuarter() override { std::cout << "You haven’t inserted a quarter" << std::endl; };
     bool turnCrank() override { std::cout << "You turned, but there’s no quarter" << std::endl; return false;}
@@ -66,12 +66,12 @@ public:
 class HasQuarterState : public State
 {
 private:
-    std::shared_ptr<GumballMachine> gumballMachine{nullptr};
+    std::weak_ptr<GumballMachine> gumballMachine;
     std::random_device rd;
     std::mt19937 gen{rd()};
     std::discrete_distribution<> d{{90, 10}};
 public:
-    explicit HasQuarterState(std::shared_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
+    explicit HasQuarterState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
     void insertQuarter() override { std::cout << "You can’t insert another quarter" << std::endl; }
     void ejectQuarter() override;
     bool turnCrank() override;
@@ -83,9 +83,9 @@ public:
 class SoldState : public State
 {
 private:
-    std::shared_ptr<GumballMachine> gumballMachine{nullptr};
+    std::weak_ptr<GumballMachine> gumballMachine;
 public:
-    explicit SoldState(std::shared_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
+    explicit SoldState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
     //void insertQuarter() override { std::cout << "Please wait, we’re already giving you a gumball" << std::endl; }
     //void ejectQuarter() override { std::cout << "Sorry, you already turned the crank" << std::endl; }
     //void turnCrank() override { std::cout << "Turning twice doesn’t get you another gumball!" << std::endl; }
@@ -97,9 +97,9 @@ public:
 class SoldOutState : public State
 {
 private:
-    std::shared_ptr<GumballMachine> gumballMachine{nullptr};
+    std::weak_ptr<GumballMachine> gumballMachine;
 public:
-    explicit SoldOutState(std::shared_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
+    explicit SoldOutState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
     void insertQuarter() override { std::cout << "You can’t insert a quarter, the machine is sold out" << std::endl; }
     void ejectQuarter() override { std::cout << "You can’t eject, you haven’t inserted a quarter yet" << std::endl; }
     bool turnCrank() override { std::cout << "You turned, but there are no gumballs" << std::endl; return false;}
@@ -112,9 +112,9 @@ public:
 class WinnerState : public State
 {
 private:
-    std::shared_ptr<GumballMachine> gumballMachine{nullptr};
+    std::weak_ptr<GumballMachine> gumballMachine;
 public:
-    explicit WinnerState(std::shared_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
+    explicit WinnerState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
     //void insertQuarter() override { std::cout << "Please wait, we’re already giving you a gumballs" << std::endl; }
     //void ejectQuarter() override { std::cout << "Sorry, you already turned the crank" << std::endl; }
     //void turnCrank() override { std::cout << "Turning twice doesn’t get you another gumball!" << std::endl; }

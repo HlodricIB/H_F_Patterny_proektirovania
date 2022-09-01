@@ -3,41 +3,25 @@
 
 std::shared_ptr<GumballMachine> GumballMachine::get_ptr(int numberGumballs)
 {
-    std::shared_ptr<GumballMachine> shared_this(nullptr, [] (GumballMachine*) { std::cout << "Shared_this destructor called" << std::endl; });
-    std::shared_ptr<GumballMachine>(new GumballMachine(numberGumballs, shared_this), [] (GumballMachine*) { });
-    return shared_this;
+    std::shared_ptr<GumballMachine> self_ptr(nullptr);
+    auto self = std::shared_ptr<GumballMachine>(new GumballMachine(numberGumballs, self_ptr), [] (GumballMachine*) { });
+    return self_ptr;
 }
 
 GumballMachine::GumballMachine(int numberGumballs, std::shared_ptr<GumballMachine>& self_ptr): count(numberGumballs)
 {
-    auto lambda_deleter = [this] (GumballMachine* gumballMachine)
-    {
-        if (weak_from_this().expired())
-        {
-            return ;
-        }
-        delete gumballMachine;
-    };
-    auto self_shared = std::shared_ptr<GumballMachine>(this, lambda_deleter);
-    self_ptr.reset(this);
-    //auto self_shared = std::shared_ptr<GumballMachine>(this);
-    soldOutState = std::make_shared<SoldOutState>(shared_from_this());
-    noQuarterState = std::make_shared<NoQuarterState>(shared_from_this());
-    //hasQuarterState = std::make_shared<HasQuarterState>(shared_from_this());
-    //soldState = std::make_shared<SoldState>(shared_from_this());
-    //winnerState = std::make_shared<WinnerState>(shared_from_this());
-    //soldOutState.reset(new SoldOutState(self_shared));
-    //noQuarterState.reset(new NoQuarterState(self_shared));
-    //hasQuarterState.reset(new HasQuarterState(self_shared));
-    //soldState.reset(new SoldState(self_shared));
-    //winnerState.reset(new WinnerState(self_shared));
-
-    /*if (count > 0)
+    self_ptr = std::shared_ptr<GumballMachine>(this);
+    soldOutState = std::make_shared<SoldOutState>(weak_from_this());
+    noQuarterState = std::make_shared<NoQuarterState>(weak_from_this());
+    hasQuarterState = std::make_shared<HasQuarterState>(weak_from_this());
+    soldState = std::make_shared<SoldState>(weak_from_this());
+    winnerState = std::make_shared<WinnerState>(weak_from_this());
+    if (count > 0)
     {
         state = noQuarterState;
     } else {
         state = soldOutState;
-    }*/
+    }
 }
 
 void GumballMachine::releaseBall()
@@ -77,46 +61,46 @@ void State::dispense(std::shared_ptr<GumballMachine> gumballMachine)
 void NoQuarterState::insertQuarter()
 {
     std::cout << "You inserted a quarter" << std::endl;
-    gumballMachine->setState(gumballMachine->getHasQuarterState());
+    gumballMachine.lock()->setState(gumballMachine.lock()->getHasQuarterState());
 }
 
 void HasQuarterState::ejectQuarter()
 {
     std::cout << "Quarter returned" << std::endl;
-    gumballMachine->setState(gumballMachine->getNoQuarterState());
+    gumballMachine.lock()->setState(gumballMachine.lock()->getNoQuarterState());
 }
 
 bool HasQuarterState::turnCrank()
 {
     std::cout << "You turned..." << std::endl;
-    if (d(gen) == 1 && gumballMachine->getCount() > 1)
+    if (d(gen) == 1 && gumballMachine.lock()->getCount() > 1)
     {
-        gumballMachine->setState(gumballMachine->getWinnerState());
+        gumballMachine.lock()->setState(gumballMachine.lock()->getWinnerState());
     } else {
-        gumballMachine->setState(gumballMachine->getSoldState());
+        gumballMachine.lock()->setState(gumballMachine.lock()->getSoldState());
     }
     return true;
 }
 
 void SoldState::dispense()
 {
-    gumballMachine->releaseBall();
-    State::dispense(gumballMachine);
+    gumballMachine.lock()->releaseBall();
+    State::dispense(gumballMachine.lock());
 }
 
 void SoldOutState::refill()
 {
-    if (gumballMachine->getCount() > 0)
+    if (gumballMachine.lock()->getCount() > 0)
     {
-        gumballMachine->setState(gumballMachine->getNoQuarterState());
+        gumballMachine.lock()->setState(gumballMachine.lock()->getNoQuarterState());
     }
 }
 
 void WinnerState::dispense()
 {
-    gumballMachine->releaseBall();
-    gumballMachine->releaseBall();
+    gumballMachine.lock()->releaseBall();
+    gumballMachine.lock()->releaseBall();
     std::cout << "YOU’RE A WINNER! You got two gumballs for your quarter" << std::endl;
-    State::dispense(gumballMachine);
+    State::dispense(gumballMachine.lock());
 
 }
