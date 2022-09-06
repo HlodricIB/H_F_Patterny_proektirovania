@@ -33,7 +33,7 @@ private:
     int count{0};
 public:
     static std::shared_ptr<GumballMachine> get_ptr(int);
-    ~GumballMachine() { std::cout << "Destructor called" << std::endl; }
+    ~GumballMachine() { }
     void insertQuarter() { state->insertQuarter(); }
     void ejectQuarter() { state->ejectQuarter(); }
     void turnCrank() { state->turnCrank(); state->dispense(); }
@@ -59,7 +59,6 @@ public:
     void ejectQuarter() override { std::cout << "You haven’t inserted a quarter" << std::endl; };
     bool turnCrank() override { std::cout << "You turned, but there’s no quarter" << std::endl; return false;}
     void dispense() override { std::cout << "You need to pay first" << std::endl; }
-    //void refill() override { }
     std::string toString() const override { return "Machine is waiting for quarter\n"; }
 };
 
@@ -76,7 +75,6 @@ public:
     void ejectQuarter() override;
     bool turnCrank() override;
     void dispense() override { std::cout << "You need to pay first" << std::endl; }
-    //void refill() override { }
     std::string toString() const override { return "Machine has quarter\n"; }
 };
 
@@ -86,11 +84,7 @@ private:
     std::weak_ptr<GumballMachine> gumballMachine;
 public:
     explicit SoldState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
-    //void insertQuarter() override { std::cout << "Please wait, we’re already giving you a gumball" << std::endl; }
-    //void ejectQuarter() override { std::cout << "Sorry, you already turned the crank" << std::endl; }
-    //void turnCrank() override { std::cout << "Turning twice doesn’t get you another gumball!" << std::endl; }
     void dispense() override;
-    //void refill() override { }
     std::string toString() const override { return "Machine sold a gumball to you\n"; }
 };
 
@@ -115,11 +109,7 @@ private:
     std::weak_ptr<GumballMachine> gumballMachine;
 public:
     explicit WinnerState(std::weak_ptr<GumballMachine> gumballMachine_): gumballMachine(gumballMachine_) { }
-    //void insertQuarter() override { std::cout << "Please wait, we’re already giving you a gumballs" << std::endl; }
-    //void ejectQuarter() override { std::cout << "Sorry, you already turned the crank" << std::endl; }
-    //void turnCrank() override { std::cout << "Turning twice doesn’t get you another gumball!" << std::endl; }
     void dispense() override;
-    //void refill() override { }
     std::string toString() const override { return "Machine in a winner state\n"; }
 };
 
