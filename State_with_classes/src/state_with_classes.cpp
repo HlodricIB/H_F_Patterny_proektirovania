@@ -42,8 +42,15 @@ void GumballMachine::refill(int count_)
 
 std::string GumballMachine::toString() const
 {
+    static bool do_new_line{false};
+    if (!do_new_line)
+    {
+        do_new_line = true;
+    } else {
+        std::cout << '\n';
+    }
     std::ostringstream info;
-    info << "\nMighty Gumball, Inc.\nInventory: " << count << " gumballs\n" << state->toString();
+    info << "Mighty Gumball, Inc.\nInventory: " << count << " gumballs\n" << state->toString();
     return info.str();
 }
 
