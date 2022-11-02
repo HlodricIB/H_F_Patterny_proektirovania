@@ -8,7 +8,7 @@ void DuckSimulator::simulate(std::shared_ptr<AbstractDuckFactory> duckFactory)
     auto duckCall = duckFactory->createDuckCall();
     auto rubberDuck = duckFactory->createRubberDuck();
     auto gooseDuck = duckFactory->createOrdinaryGooseDuck();
-    std::cout << "Duck Simulator: With Composite — Flocks" << std::endl;
+    std::cout << "Duck Simulator: With Observer" << std::endl;
 
     std::shared_ptr<Flock> flockOfDucks = std::make_shared<Flock>();
 
@@ -31,18 +31,37 @@ void DuckSimulator::simulate(std::shared_ptr<AbstractDuckFactory> duckFactory)
 
     flockOfDucks->add(flockOfMallards);
 
-    std::cout << "\nDuck Simulator: Whole Flock Simulation" << std::endl;
-    flockOfDucks->quack();
+    auto quackologist = std::make_shared<Quackologist>();
 
-    std::cout << "\nDuck Simulator: Mallard Flock Simulation" << std::endl;
-    flockOfMallards->quack();
+    flockOfDucks->registerObserver(quackologist);
+
+    simulate(flockOfDucks);
 
     std::cout << "\nThe ducks quacked " << QuackCounter::getQuacks() << " times\n" << std::endl;
 }
 
-MallardDuck::MallardDuck()
+std::shared_ptr<MallardDuck> MallardDuck::get_instance()
 {
-    auto self_ptr = std::shared_ptr<MallardDuck>(this);
+    std::shared_ptr<MallardDuck> self_ptr{nullptr};
+    MallardDuck temp(self_ptr);
+    return self_ptr;
+}
+
+RedheadDuck::RedheadDuck()
+{
+    auto self_ptr = std::shared_ptr<RedheadDuck>(this);
+    observable = std::make_shared<Observable>(shared_from_this());
+}
+
+DuckCall::DuckCall()
+{
+    auto self_ptr = std::shared_ptr<DuckCall>(this);
+    observable = std::make_shared<Observable>(shared_from_this());
+}
+
+RubberDuck::RubberDuck()
+{
+    auto self_ptr = std::shared_ptr<RubberDuck>(this);
     observable = std::make_shared<Observable>(shared_from_this());
 }
 
@@ -54,11 +73,19 @@ void Flock::quack() const
     }
 }
 
+void Flock::registerObserver(std::shared_ptr<Observer> observer)
+{
+    for (auto& quacker : quackers)
+    {
+        quacker->registerObserver(observer);
+    }
+}
+
 void Observable::notifyObservers() const
 {
     for (auto& observer : observers)
     {
-        observer->update(duck);
+        observer->update(duck.lock());
     }
 }
 

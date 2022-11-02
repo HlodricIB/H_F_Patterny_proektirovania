@@ -18,12 +18,13 @@ public:
 class Observable : public QuackObservable
 {
 private:
-    std::shared_ptr<QuackObservable> duck{nullptr};
+    std::weak_ptr<QuackObservable> duck;
     std::vector<std::shared_ptr<Observer>> observers;
 public:
-    Observable(std::shared_ptr<QuackObservable> duck_): duck(duck_) { }
+    Observable(std::weak_ptr<QuackObservable> duck_): duck(duck_) { }
     void registerObserver(std::shared_ptr<Observer> observer) override { observers.push_back(observer); }
     void notifyObservers() const override;
+    void view() { duck.lock(); }
 };
 
 class Quackable : public QuackObservable
@@ -33,32 +34,63 @@ public:
     virtual void quack() const = 0;
 };
 
+class Observer
+{
+public:
+    ~Observer() { }
+    virtual void update(std::shared_ptr<QuackObservable>) = 0;
+};
+
+class Quackologist : public Observer
+{
+public:
+    void update(std::shared_ptr<QuackObservable> duck) override { std::cout << "Quackologist: " << duck << " just quacked."; }
+};
+
 class MallardDuck : public Quackable, public std::enable_shared_from_this<MallardDuck>
 {
 private:
     std::shared_ptr<Observable> observable{nullptr};
+    MallardDuck(std::shared_ptr<MallardDuck>& self_ptr) { self_ptr = std::shared_ptr<MallardDuck>(this); observable = std::make_shared<Observable>(self_ptr); };
 public:
-    MallardDuck();
-    void quack() const override { std::cout << "Quack" << std::endl; }
-    void registerObserver(std::shared_ptr<Observer> observer) override
+    static std::shared_ptr<MallardDuck> get_instance();
+    void quack() const override { std::cout << "Quack" << std::endl; notifyObservers(); }
+    void registerObserver(std::shared_ptr<Observer> observer) override { observable->registerObserver(observer); }
+    void notifyObservers() const override { observable->notifyObservers(); }
+    void view() { observable->view(); }
 };
 
-class RedheadDuck : public Quackable
+class RedheadDuck : public Quackable, public std::enable_shared_from_this<RedheadDuck>
 {
+private:
+    std::shared_ptr<Observable> observable{nullptr};
 public:
-    void quack() const override { std::cout << "Quack" << std::endl; }
+    RedheadDuck();
+    void quack() const override { std::cout << "Quack" << std::endl; notifyObservers();  }
+    void registerObserver(std::shared_ptr<Observer> observer) override { observable->registerObserver(observer); }
+    void notifyObservers() const override { observable->notifyObservers(); }
 };
 
-class DuckCall : public Quackable
+class DuckCall : public Quackable, public std::enable_shared_from_this<DuckCall>
 {
+private:
+    std::shared_ptr<Observable> observable{nullptr};
 public:
-    void quack() const override { std::cout << "Kwak" << std::endl; }
+    DuckCall();
+    void quack() const override { std::cout << "Kwak" << std::endl; notifyObservers();  }
+    void registerObserver(std::shared_ptr<Observer> observer) override { observable->registerObserver(observer); };
+    void notifyObservers() const override { observable->notifyObservers(); }
 };
 
-class RubberDuck : public Quackable
+class RubberDuck : public Quackable, public std::enable_shared_from_this<RubberDuck>
 {
+private:
+    std::shared_ptr<Observable> observable{nullptr};
 public:
-    void quack() const override { std::cout << "Squeak" << std::endl; }
+    RubberDuck();
+    void quack() const override { std::cout << "Squeak" << std::endl; notifyObservers();  }
+    void registerObserver(std::shared_ptr<Observer> observer) override { observable->registerObserver(observer); };
+    void notifyObservers() const override { observable->notifyObservers(); }
 };
 
 class Honkable
@@ -81,6 +113,10 @@ private:
 public:
     GooseAdapter(std::shared_ptr<Honkable> goose_): goose(goose_) { }
     void quack() const override { goose->honk(); }
+    void registerObserver(std::shared_ptr<Observer>) override { std::cout << "At this moment there were no orders for observing gooses,"
+                                                                                        " so this method for honkable is not implemented yet" << std::endl; }
+    void notifyObservers() const override { std::cout << "At this moment there were no orders for observing gooses,"
+                                                                                        " so this method for honkable is not implemented yet" << std::endl; }
 };
 
 class QuackCounter : public Quackable
@@ -92,6 +128,8 @@ public:
     QuackCounter(std::shared_ptr<Quackable> duck_): duck(duck_) { }
     void quack() const override { duck->quack(); ++numberOfQuacks; }
     static int getQuacks() { return numberOfQuacks; }
+    void registerObserver(std::shared_ptr<Observer> observer) override { duck->registerObserver(observer); }
+    void notifyObservers() const override { duck->notifyObservers(); }
 };
 
 class AbstractDuckFactory
@@ -108,7 +146,7 @@ public:
 class DuckFactory : public AbstractDuckFactory
 {
 public:
-    std::shared_ptr<Quackable> createMallardDuck() const override { return std::make_shared<MallardDuck>(); }
+    std::shared_ptr<Quackable> createMallardDuck() const override { /*return std::make_shared<MallardDuck>();*/ return MallardDuck::get_instance(); }
     std::shared_ptr<Quackable> createRedheadDuck() const override { return std::make_shared<RedheadDuck>(); }
     std::shared_ptr<Quackable> createDuckCall() const override { return std::make_shared<DuckCall>(); }
     std::shared_ptr<Quackable> createRubberDuck() const override { return std::make_shared<RubberDuck>(); }
@@ -118,7 +156,7 @@ public:
 class CountingDuckFactory : public AbstractDuckFactory
 {
 public:
-    std::shared_ptr<Quackable> createMallardDuck() const override { return std::make_shared<QuackCounter>(std::make_shared<MallardDuck>()); }
+    std::shared_ptr<Quackable> createMallardDuck() const override { return std::make_shared<QuackCounter>(MallardDuck::get_instance()); }
     std::shared_ptr<Quackable> createRedheadDuck() const override { return std::make_shared<QuackCounter>(std::make_shared<RedheadDuck>()); }
     std::shared_ptr<Quackable> createDuckCall() const override { return std::make_shared<QuackCounter>(std::make_shared<DuckCall>()); }
     std::shared_ptr<Quackable> createRubberDuck() const override { return std::make_shared<QuackCounter>(std::make_shared<RubberDuck>()); }
@@ -132,6 +170,8 @@ private:
 public:
     void add(std::shared_ptr<Quackable> quacker) { quackers.push_back(quacker); }
     void quack() const override;
+    void registerObserver(std::shared_ptr<Observer>) override;
+    void notifyObservers() const override { };
 };
 
 class AbstractGooseFactory
