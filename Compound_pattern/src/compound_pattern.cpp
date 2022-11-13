@@ -40,29 +40,56 @@ void DuckSimulator::simulate(std::shared_ptr<AbstractDuckFactory> duckFactory)
     std::cout << "\nThe ducks quacked " << QuackCounter::getQuacks() << " times\n" << std::endl;
 }
 
+MallardDuck::MallardDuck(std::shared_ptr<MallardDuck>& self_ptr)
+{
+    self_ptr = std::shared_ptr<MallardDuck>(this);
+    observable = std::make_shared<Observable>(self_ptr);
+}
+
 std::shared_ptr<MallardDuck> MallardDuck::get_instance()
 {
     std::shared_ptr<MallardDuck> self_ptr{nullptr};
-    MallardDuck temp(self_ptr);
+    new MallardDuck(self_ptr);
     return self_ptr;
 }
 
-RedheadDuck::RedheadDuck()
+RedheadDuck::RedheadDuck(std::shared_ptr<RedheadDuck>& self_ptr)
 {
-    auto self_ptr = std::shared_ptr<RedheadDuck>(this);
-    observable = std::make_shared<Observable>(shared_from_this());
+    self_ptr = std::shared_ptr<RedheadDuck>(this);
+    observable = std::make_shared<Observable>(self_ptr);
 }
 
-DuckCall::DuckCall()
+std::shared_ptr<RedheadDuck> RedheadDuck::get_instance()
 {
-    auto self_ptr = std::shared_ptr<DuckCall>(this);
-    observable = std::make_shared<Observable>(shared_from_this());
+    std::shared_ptr<RedheadDuck> self_ptr{nullptr};
+    new RedheadDuck(self_ptr);
+    return self_ptr;
 }
 
-RubberDuck::RubberDuck()
+DuckCall::DuckCall(std::shared_ptr<DuckCall>& self_ptr)
 {
-    auto self_ptr = std::shared_ptr<RubberDuck>(this);
-    observable = std::make_shared<Observable>(shared_from_this());
+    self_ptr = std::shared_ptr<DuckCall>(this);
+    observable = std::make_shared<Observable>(self_ptr);
+}
+
+std::shared_ptr<DuckCall> DuckCall::get_instance()
+{
+    std::shared_ptr<DuckCall> self_ptr{nullptr};
+    new DuckCall(self_ptr);
+    return self_ptr;
+}
+
+RubberDuck::RubberDuck(std::shared_ptr<RubberDuck>& self_ptr)
+{
+    self_ptr = std::shared_ptr<RubberDuck>(this);
+    observable = std::make_shared<Observable>(self_ptr);
+}
+
+std::shared_ptr<RubberDuck> RubberDuck::get_instance()
+{
+    std::shared_ptr<RubberDuck> self_ptr{nullptr};
+    new RubberDuck(self_ptr);
+    return self_ptr;
 }
 
 void Flock::quack() const
