@@ -40,6 +40,26 @@ void DuckSimulator::simulate(std::shared_ptr<AbstractDuckFactory> duckFactory)
     std::cout << "\nThe ducks quacked " << QuackCounter::getQuacks() << " times\n" << std::endl;
 }
 
+const std::map<std::string, std::string> Quackologist::duck_types {
+    {"MallardDuck", "Mallard Duck"},
+    {"RedheadDuck", "Redhead Duck"}
+};
+
+void Quackologist::update(std::shared_ptr<QuackObservable> duck)
+{
+    auto duck_type = boost::typeindex::type_id_runtime(*duck).pretty_name();
+    auto event = duck_types.find(duck_type);
+    std::cout << "Quackologist: ";
+    if (event != duck_types.end())
+    {
+        std::cout << event->second;
+    } else {
+        std::cout << "Unknown creature ";
+    }
+    std::cout << " just quacked.\n";
+}
+
+
 MallardDuck::MallardDuck(std::shared_ptr<MallardDuck>& self_ptr)
 {
     self_ptr = std::shared_ptr<MallardDuck>(this);
@@ -89,6 +109,19 @@ std::shared_ptr<RubberDuck> RubberDuck::get_instance()
 {
     std::shared_ptr<RubberDuck> self_ptr{nullptr};
     new RubberDuck(self_ptr);
+    return self_ptr;
+}
+
+GooseAdapter::GooseAdapter(std::shared_ptr<Honkable> goose_, std::shared_ptr<GooseAdapter>& self_ptr): goose(goose_)
+{
+    self_ptr = std::shared_ptr<GooseAdapter>(this);
+    observable = std::make_shared<Observable>(self_ptr);
+}
+
+std::shared_ptr<GooseAdapter> GooseAdapter::get_instance(std::shared_ptr<Honkable> goose_)
+{
+    std::shared_ptr<GooseAdapter> self_ptr{nullptr};
+    new GooseAdapter(goose_, self_ptr);
     return self_ptr;
 }
 

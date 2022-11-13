@@ -4,7 +4,9 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <map>
 #include "boost/type_index.hpp"
+#include "boost/core/demangle.hpp"
 
 class Observer;
 
@@ -43,11 +45,10 @@ public:
 
 class Quackologist : public Observer
 {
+private:
+    static const std::map<std::string, std::string> duck_types;
 public:
-    void update(std::shared_ptr<QuackObservable> duck) override {
-        std::cout << "Quackologist: " << boost::typeindex::type_id<decltype(duck)>() << " just quacked.\n";
-        std::cout << "Quackologist: " << boost::typeindex::type_id_with_cvr<decltype(duck)>() << " just quacked.\n";
-    }
+    void update(std::shared_ptr<QuackObservable>) override;
 };
 
 class MallardDuck : public Quackable
@@ -115,13 +116,13 @@ class GooseAdapter : public Quackable
 {
 private:
     std::shared_ptr<Honkable> goose{nullptr};
+    std::shared_ptr<Observable> observable{nullptr};
+    GooseAdapter(std::shared_ptr<Honkable>, std::shared_ptr<GooseAdapter>&);
 public:
-    GooseAdapter(std::shared_ptr<Honkable> goose_): goose(goose_) { }
-    void quack() const override { goose->honk(); }
-    void registerObserver(std::shared_ptr<Observer>) override { std::cout << "At this moment there were no orders for observing gooses,"
-                                                                                        " so method for registering observer for honkable is not implemented yet" << std::endl; }
-    void notifyObservers() const override { std::cout << "At this moment there were no orders for observing gooses,"
-                                                                                        " so method for notifying observers for honkable is not implemented yet" << std::endl; }
+    static std::shared_ptr<GooseAdapter> get_instance(std::shared_ptr<Honkable>);
+    void quack() const override { goose->honk(); notifyObservers(); }
+    void registerObserver(std::shared_ptr<Observer> observer) override { observable->registerObserver(observer); }
+    void notifyObservers() const override { observable->notifyObservers();}
 };
 
 class QuackCounter : public Quackable
@@ -155,7 +156,7 @@ public:
     std::shared_ptr<Quackable> createRedheadDuck() const override { return RedheadDuck::get_instance(); }
     std::shared_ptr<Quackable> createDuckCall() const override { return DuckCall::get_instance(); }
     std::shared_ptr<Quackable> createRubberDuck() const override { return RubberDuck::get_instance(); }
-    std::shared_ptr<Quackable> createOrdinaryGooseDuck() const override { return std::make_shared<GooseAdapter>(std::make_shared<OrdinaryGoose>()); }
+    std::shared_ptr<Quackable> createOrdinaryGooseDuck() const override { return GooseAdapter::get_instance(std::make_shared<OrdinaryGoose>()); }
 };
 
 class CountingDuckFactory : public AbstractDuckFactory
@@ -165,7 +166,7 @@ public:
     std::shared_ptr<Quackable> createRedheadDuck() const override { return std::make_shared<QuackCounter>(RedheadDuck::get_instance()); }
     std::shared_ptr<Quackable> createDuckCall() const override { return std::make_shared<QuackCounter>(DuckCall::get_instance()); }
     std::shared_ptr<Quackable> createRubberDuck() const override { return std::make_shared<QuackCounter>(RubberDuck::get_instance()); }
-    std::shared_ptr<Quackable> createOrdinaryGooseDuck() const override { return std::make_shared<GooseAdapter>(std::make_shared<OrdinaryGoose>()); }
+    std::shared_ptr<Quackable> createOrdinaryGooseDuck() const override { return GooseAdapter::get_instance(std::make_shared<OrdinaryGoose>()); }
 };
 
 class Flock : public Quackable
@@ -203,7 +204,7 @@ public:
 class GooseDuckFactory : public AbstractGooseDuckFactory
 {
 public:
-    std::shared_ptr<Quackable> createOrdinaryGooseDuck() const override { return std::make_shared<GooseAdapter>(std::make_shared<OrdinaryGoose>()); }
+    std::shared_ptr<Quackable> createOrdinaryGooseDuck() const override { return GooseAdapter::get_instance(std::make_shared<OrdinaryGoose>()); }
 };
 
 class DuckSimulator
