@@ -42,7 +42,10 @@ void DuckSimulator::simulate(std::shared_ptr<AbstractDuckFactory> duckFactory)
 
 const std::map<std::string, std::string> Quackologist::duck_types {
     {"MallardDuck", "Mallard Duck"},
-    {"RedheadDuck", "Redhead Duck"}
+    {"RedheadDuck", "Redhead Duck"},
+    {"DuckCall", "Duck Call"},
+    {"RubberDuck", "Rubber Duck"},
+    {"GooseAdapter", "Goose pretending to be a Duck"}
 };
 
 void Quackologist::update(std::shared_ptr<QuackObservable> duck)
@@ -54,11 +57,10 @@ void Quackologist::update(std::shared_ptr<QuackObservable> duck)
     {
         std::cout << event->second;
     } else {
-        std::cout << "Unknown creature ";
+        std::cout << "Unknown creature";
     }
     std::cout << " just quacked.\n";
 }
-
 
 MallardDuck::MallardDuck(std::shared_ptr<MallardDuck>& self_ptr)
 {
